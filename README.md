@@ -1,12 +1,12 @@
 ---
-component-id: pattern-exploration-gui
-type: Application
-name: Pattern Exploration GUI
-description: A frontend interface for dispaying data derived from the [Patterns Knowledge Graph](https://github.com/polifonia-project/patterns-knowledge-graph).
+component-id: pattern-explorations-backend
+type: Software
+name: Pattern Exploration Backend
+description: A server that requests and processes data from the [Patterns Knowledge Graph](https://github.com/polifonia-project/patterns-knowledge-graph) on behalf of the [Pattern Exploration GUI](https://github.com/polifonia-project/pattern-exploration-gui).
 work-package:
 - WP5
 project: polifonia-project
-resource: https://github.com/polifonia-project/pattern-exploration-gui/releases
+resource: https://github.com/polifonia-project/pattern-explorations-backend/releases
 release-date: 01/03/2024
 release-number: v0.1.0
 licence:
@@ -17,10 +17,12 @@ contributors:
 - Rory Sweeney <https://github.com/rorys4>
 related-components:
 - reuses:
-  - "Pattern Explorations Backend https://github.com/polifonia-project/pattern-explorations-backend"
+  - "Pattern Exploration GUI https://github.com/polifonia-project/pattern-exploration-gui"
   - "Patterns knowledge Graph https://github.com/polifonia-project/patterns-knowledge-graph"
+- informed-by:
+  - "Pattern GUI API Schema https://github.com/polifonia-project/Pattern-GUI-API-schema"
 links:
-- https://github.com/polifonia-project/pattern-exploration-gui
+- https://github.com/polifonia-project/pattern-explorations-backend
 funder:
   - name: Horizon 2020 Framework Programme
     url: https://cordis.europa.eu/programme/id/H2020-EC
@@ -28,55 +30,94 @@ funder:
 credits: "This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement N. 101004746."
 ---
 
+# Python Flask Server for Pattern Explorations using the Blazegraph KG
 
-# Music Pattern Exploration - Frontend Server
-
-## Description
-
-This repository contains the frontend server for the Music Pattern Exploration project. The frontend is built using Vue.js (@vue/cli 5.0.8) and communicates with a separate Python backend server for data. It features a search home page and a tune page.
+A Python Flask server providing APIs for searching musical tunes and retrieving similarity measures. It can be connected to a SPARQL endpoint but currently uses a mock response.
 
 ## Prerequisites
 
-- Node.js and npm
-- Vue CLI 5.0.8
+Ensure you have Python and pip installed on your machine. I'd recommend using a environment manager like miniconda to keep everything sane.
 
-## Installation
+## Installing Dependencies
 
-To install and run this project locally:
+Clone the repository, navigate to the project folder and install the dependencies from `requirements.txt`.
 
-1. Clone this repository:
+```
+git clone <repository-url>
+cd <project-folder>
+pip install -r requirements.txt
+```
 
-    `git clone git@github.com:polifonia-project/pattern-exploration-gui.git`
+Replace `<repository-url>` and `<project-folder>` with your actual repository URL and project folder name.
 
-2. Navigate into the project directory:
+## Application Code
 
-    `cd pattern-exploration-gui`
+The main application code is in `app.py`, and the SPARQL queries are generated using a query factory in `query_factory.py`.
 
-3. Install the necessary dependencies:
+## Running the Server
 
-    `npm install`
+Start the Flask server with:
 
-4. Start the server:
+```
+python app.py
+```
 
-    `npm run serve`
+The server runs on `localhost` port `5000` by default.
 
-The application will start and is accessible via `http://localhost:8080` in your browser (or another port if 8080 is already in use).
+## API Endpoints
 
-**Note:** Make sure that the backend server is also running and accessible for the frontend to fetch data.
+### 1. Search for Tunes
 
-## Usage
+Search for tunes with a GET request to `/api/search`, passing the search query as a parameter.
 
-- **Search Home Page:** 
-- **Tune Page:** 
+Example:
 
-## Contributing
+```
+curl http://localhost:5000/api/search?query=Vivaldi
+```
 
-Contributions to the Music Pattern Exploration Frontend are welcomed! If you wish to contribute, please fork the repository and submit a pull request.
+### 2. Retrieve Similarity Measures
 
-## Backend Server
+Get a list of similarity measures with a GET request to `/api/similarity-measures`.  
 
-The frontend server communicates with a separate backend server.
+Example:
 
-## Contact
+```
+curl http://localhost:5000/api/similarity-measures
+```
+would return all of the available similarity measures.
 
-For any inquiries or issues, please feel free to contact me at [pushkar.jajoria@universityofgalway.ie].
+## `query_factory.py` Example
+
+The `query_factory.py` contains functions to generate SPARQL queries. Here is a usage example:
+
+```python
+import requests
+from query_factory import get_tune_given_name
+
+# Generate the SPARQL query
+sparql_query = get_tune_given_name("Yankee Doodle")
+
+# Execute the SPARQL query
+response = requests.post(
+    BLAZEGRAPH_URL,
+    data={
+        'query': sparql_query,
+        'format': 'json'
+    }
+)
+
+# Print the JSON data
+print(response.json())
+```
+
+## `requirements.txt`
+
+The required libraries are listed in `requirements.txt`:
+
+```
+Flask==2.3.2
+Flask_Cors==3.0.10
+Requests==2.31.0
+```
+
